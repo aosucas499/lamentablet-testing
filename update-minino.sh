@@ -11,7 +11,7 @@
 # NOTA cambiamos el repo de minino-tde a lamentablet-vexia, por si actualizaciones
 # del futuro rompen algo en las tablets.
 
-REPO_GITHUB=aosucas499/lamentablet-vexia
+REPO_GITHUB=aosucas499/lamentablet-testing
 
 FIREFOX=https://download-installer.cdn.mozilla.net/pub/firefox/releases/83.0/linux-i686/es-ES/firefox-83.0.tar.bz2
 LANZADOR=https://raw.githubusercontent.com/aosucas499/actualiza-firefox/master/firefox-latest.desktop
