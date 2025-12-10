@@ -13,7 +13,7 @@
 
 REPO_GITHUB=aosucas499/lamentablet-testing
 
-FIREFOX=https://download-installer.cdn.mozilla.net/pub/firefox/releases/83.0/linux-i686/es-ES/firefox-83.0.tar.bz2
+FIREFOX=https://ftp.mozilla.org/pub/firefox/releases/144.0/linux-i686/es-ES/firefox-144.0.tar.xz
 LANZADOR=https://raw.githubusercontent.com/aosucas499/actualiza-firefox/master/firefox-latest.desktop
 NEWLANZADOR=firefox-latest.desktop
 
@@ -301,15 +301,21 @@ function customize-app {
 	echo -e "${AZUL}Aplicación customize-minino instalada como app del sistema${NORMAL}"
 }
 
-function firefox83-system {
+function firefox144-system {
 
 	# Comprobamos si el cambio ya ha sido aplicado previamente
-	# ---
-
-	if [[ -d /usr/lib/firefox-latest ]]; then
-		echo -e "${AZUL}Ya teníamos firefox83 en el sistema${NORMAL}"
-		return
-	fi
+    # ---
+    if [[ -d /usr/lib/firefox-latest ]]; then
+        INSTALLED_VER=$(/usr/lib/firefox-latest/firefox --version 2>/dev/null | awk '{print $3}')
+        if [[ "$INSTALLED_VER" == "144.0" ]]; then
+            echo -e "${AZUL}Ya está instalada la versión Firefox 144 (última versión para 32 bits).${NORMAL}"
+            return
+        else
+            echo -e "${AZUL}Actualizando Firefox ($INSTALLED_VER → 144.0)...${NORMAL}"
+        fi
+    else
+        echo -e "${AZUL}Instalando Firefox 144 por primera vez...${NORMAL}"
+    fi
 
 	# Eliminamos del sistema la version noroot para el usuario
 	
@@ -319,14 +325,16 @@ function firefox83-system {
 	sudo rm -rf /home/$USER/Descargas/actualiza-firefox-guadalinex-master
 	sudo rm -f 	/home/$USER/Descargas/actualiza-firefox-guadalinex-master.zip
 
-	echo -e "Borrado firefox83 de la carpeta usuario${NORMAL}"
+	sudo rm -rf /usr/lib/firefox-latest
+ 
+ echo -e "${AZUL}Borradas versiones anteriores de Firefox${NORMAL}"
 
-  	# Instala firefox 83 en el sistema
+  	# Instala firefox 144 en el sistema
 
 	echo -e "Descargando Firefox para arquitecturas de 32 bits${NORMAL}"
-	wget $FIREFOX -q --show-progress -O /tmp/firefox-latest.tar.bz2
+	wget $FIREFOX -q --show-progress -O /tmp/firefox-latest.tar.xz
 	echo -e "Firefox se está descomprimiendo en un directorio del sistema...${NORMAL}"
-	sudo tar -xjf /tmp/firefox-latest.tar.bz2 -C /usr/lib
+	sudo tar -xJf /tmp/firefox-latest.tar.xz -C /usr/lib
 	sudo mv /usr/lib/firefox /usr/lib/firefox-latest
 	echo -e "Creando accesos directos...${NORMAL}"
 	wget $LANZADOR -q -O /tmp/$NEWLANZADOR
@@ -334,7 +342,7 @@ function firefox83-system {
 	cp /tmp/$NEWLANZADOR /home/$USER/Escritorio
 	echo -e "BORRANDO archivos firefox residuales...${NORMAL}"
 	rm /tmp/$NEWLANZADOR
-	rm /tmp/firefox-latest.tar.bz2
+	rm /tmp/firefox-latest.tar.xz
 	
 	#Borra el actualizador automático ya que puede que en un futuro las actualizaciones no sean compatibles con el sistema
 	
@@ -672,7 +680,7 @@ corregirImageMagick
 corregirInstalacionDesatendida
 showAsterisks
 customize-app
-firefox83-system
+firefox144-system
 sudoersUpdate
 fixmultimediaSource
 fixSource
