@@ -26,6 +26,10 @@ ROJO="\033[1;31m"
 NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
+# Descargas grandes (Firefox, git clone) - sin sudo
+BIGTMP="$HOME/.cache/minino-big"
+mkdir -p "$BIGTMP"
+
 # Comprueba si está instalado en el sistema el paquete solicitado
 # ---
 
@@ -331,18 +335,22 @@ function firefox144-system {
 
   	# Instala firefox 144 en el sistema
 
-	echo -e "Descargando Firefox para arquitecturas de 32 bits${NORMAL}"
-	wget $FIREFOX -q --show-progress -O /tmp/firefox-latest.tar.xz
-	echo -e "Firefox se está descomprimiendo en un directorio del sistema...${NORMAL}"
-	sudo tar -xJf /tmp/firefox-latest.tar.xz -C /usr/lib
-	sudo mv /usr/lib/firefox /usr/lib/firefox-latest
-	echo -e "Creando accesos directos...${NORMAL}"
-	wget $LANZADOR -q -O /tmp/$NEWLANZADOR
-	sudo cp /tmp/$NEWLANZADOR /usr/share/applications/
-	cp /tmp/$NEWLANZADOR /home/$USER/Escritorio
-	echo -e "BORRANDO archivos firefox residuales...${NORMAL}"
-	rm /tmp/$NEWLANZADOR
-	rm /tmp/firefox-latest.tar.xz
+	# Instala firefox 144 en el sistema
+echo -e "Descargando Firefox para arquitecturas de 32 bits${NORMAL}"
+wget "$FIREFOX" -q --show-progress -O "$BIGTMP/firefox-latest.tar.xz"
+
+echo -e "Firefox se está descomprimiendo en un directorio del sistema...${NORMAL}"
+sudo tar -xJf "$BIGTMP/firefox-latest.tar.xz" -C /usr/lib
+sudo mv /usr/lib/firefox /usr/lib/firefox-latest
+
+echo -e "Creando accesos directos...${NORMAL}"
+wget "$LANZADOR" -q -O "/tmp/$NEWLANZADOR"
+sudo cp "/tmp/$NEWLANZADOR" /usr/share/applications/
+cp "/tmp/$NEWLANZADOR" "/home/$USER/Escritorio"
+
+echo -e "BORRANDO archivos firefox residuales...${NORMAL}"
+rm "/tmp/$NEWLANZADOR"
+rm "$BIGTMP/firefox-latest.tar.xz"
 	
 	#Borra el actualizador automático ya que puede que en un futuro las actualizaciones no sean compatibles con el sistema
 	
@@ -480,8 +488,10 @@ function prepareIso {
 
 function descargarMininoTDE(){
 
-git clone "https://github.com/$REPO_GITHUB.git" /tmp/minino
-cd /tmp/minino
+descargarMininoTDE() {
+    git clone "https://github.com/$REPO_GITHUB.git" "$BIGTMP/minino"
+    cd "$BIGTMP/minino"
+}
 
 echo -e "${AZUL}Actualización de Minino-TDE descargada correctamente${NORMAL}"
 }
@@ -658,6 +668,9 @@ fi
 # Lo eliminamos para que no vuelva a ser usado y procedemos con la actualización
 
 rm -f /tmp/updateminino-*
+
+# Limpiar descargas grandes
+rm -rf "$BIGTMP"
 
 # Aseguramos tener el sistema actualizado
 # ---
