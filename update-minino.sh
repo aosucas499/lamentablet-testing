@@ -27,7 +27,9 @@ NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
 # Descargas grandes (Firefox, git clone) - sin sudo
-BIGTMP="$HOME/.cache/minino-big"
+REAL_USER="${SUDO_USER:-$USER}"
+REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+BIGTMP="$REAL_HOME/.cache/minino-big"
 mkdir -p "$BIGTMP"
 
 # Comprueba si está instalado en el sistema el paquete solicitado
@@ -359,7 +361,7 @@ rm "$BIGTMP/firefox-latest.tar.xz"
 	#Librería necesaria para versiones nuevas de firefox, instalada previamente, pero por si las moscas	
 	
 	sudo apt-get install libatomic1 -y 
-	echo -e "${AZUL}Firefox 83 instalado correctamente en el sistema${NORMAL}"
+	echo -e "${AZUL}Firefox 144 instalado correctamente en el sistema${NORMAL}"
     
 }
 
