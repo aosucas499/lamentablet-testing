@@ -338,6 +338,7 @@ function firefox144-system {
 	# Instala firefox 144 en el sistema
 echo -e "Descargando Firefox para arquitecturas de 32 bits${NORMAL}"
 cd $BIGTMP
+sudo rm firefox*
 wget "$FIREFOX"
 echo -e "Firefox se está descomprimiendo en un directorio del sistema...${NORMAL}"
 sudo tar -xJf firefox*.xz -C /usr/lib
