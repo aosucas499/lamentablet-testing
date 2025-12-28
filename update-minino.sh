@@ -26,9 +26,9 @@ ROJO="\033[1;31m"
 NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
-# Carpeta tmp grande segura (sin depender de /var ni /tmp)
-BIGTMP="/home/$SUDO_USER/.cache/minino-big"
-mkdir -p "$BIGTMP"
+REAL_USER="${SUDO_USER:-$USER}"
+REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+BIGTMP="$REAL_HOME/.cache/minimobig"
 
 # Comprueba si está instalado en el sistema el paquete solicitado
 # ---
