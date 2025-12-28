@@ -26,11 +26,14 @@ ROJO="\033[1;31m"
 NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
-# Descargas grandes (Firefox, git clone) - sin sudo
+# Detectar usuario real aunque se ejecute con sudo
 REAL_USER="${SUDO_USER:-$USER}"
-REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+REAL_HOME="$(eval echo "~$REAL_USER")"
+
+# Carpeta tmp grande segura (sin depender de /var ni /tmp)
 BIGTMP="$REAL_HOME/.cache/minino-big"
 mkdir -p "$BIGTMP"
+chown -R "$REAL_USER:$REAL_USER" "$BIGTMP"
 
 # Comprueba si está instalado en el sistema el paquete solicitado
 # ---
