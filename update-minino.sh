@@ -27,7 +27,7 @@ NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
 # Carpeta tmp grande segura (sin depender de /var ni /tmp)
-BIGTMP="$HOME/.cache/minino-big"
+BIGTMP="/home/$SUDO_USER/.cache/minino-big"
 mkdir -p "$BIGTMP"
 
 # Comprueba si está instalado en el sistema el paquete solicitado
