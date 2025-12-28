@@ -26,14 +26,9 @@ ROJO="\033[1;31m"
 NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
-# Detectar usuario real aunque se ejecute con sudo
-REAL_USER="${SUDO_USER:-$USER}"
-REAL_HOME="$(eval echo "~$REAL_USER")"
-
 # Carpeta tmp grande segura (sin depender de /var ni /tmp)
-BIGTMP="$REAL_HOME/.cache/minino-big"
+BIGTMP="$HOME/.cache/minino-big"
 mkdir -p "$BIGTMP"
-chown -R "$REAL_USER:$REAL_USER" "$BIGTMP"
 
 # Comprueba si está instalado en el sistema el paquete solicitado
 # ---
@@ -342,10 +337,10 @@ function firefox144-system {
 
 	# Instala firefox 144 en el sistema
 echo -e "Descargando Firefox para arquitecturas de 32 bits${NORMAL}"
-wget "$FIREFOX" -q --show-progress -O "$BIGTMP/firefox-latest.tar.xz"
-
+cd $BIGTMP
+wget "$FIREFOX"
 echo -e "Firefox se está descomprimiendo en un directorio del sistema...${NORMAL}"
-sudo tar -xJf "$BIGTMP/firefox-latest.tar.xz" -C /usr/lib
+sudo tar -xJf firefox*.xz -C /usr/lib
 sudo mv /usr/lib/firefox /usr/lib/firefox-latest
 
 echo -e "Creando accesos directos...${NORMAL}"
@@ -355,7 +350,7 @@ cp "/tmp/$NEWLANZADOR" "/home/$USER/Escritorio"
 
 echo -e "BORRANDO archivos firefox residuales...${NORMAL}"
 rm "/tmp/$NEWLANZADOR"
-rm "$BIGTMP/firefox-latest.tar.xz"
+rm "$BIGTMP/firefox*"
 	
 	#Borra el actualizador automático ya que puede que en un futuro las actualizaciones no sean compatibles con el sistema
 	
