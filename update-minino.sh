@@ -26,13 +26,9 @@ ROJO="\033[1;31m"
 NORMAL="\033[0m"
 AZUL="\033[1;34m"
 
-REAL_USER="${SUDO_USER:-$USER}"
-REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
-
-BIGTMP="$REAL_HOME/.cache/mininobig"
-
-sudo -u "$REAL_USER" mkdir -p "$BIGTMP" || exit 1
-cd "$BIGTMP" || exit 1
+BIGTMP=/home/$SUDO_USER/.cache/minino-big
+mkdir -p /home/$SUDO_USER/.cache/minino-big
+mkdir -p /home/$USER/.cache/minino-big
 
 # Comprueba si está instalado en el sistema el paquete solicitado
 # ---
@@ -341,12 +337,15 @@ function firefox144-system {
 
 	# Instala firefox 144 en el sistema
 echo -e "Descargando Firefox para arquitecturas de 32 bits${NORMAL}"
+mkdir -p /home/$SUDO_USER/.cache/minino-big
+mkdir -p /home/$USER/.cache/minino-big
 cd $BIGTMP
 sudo rm firefox*
 wget "$FIREFOX"
 echo -e "Firefox se está descomprimiendo en un directorio del sistema...${NORMAL}"
 sudo tar -xJf firefox*.xz -C /usr/lib
 sudo mv /usr/lib/firefox /usr/lib/firefox-latest
+cd $HOME
 
 echo -e "Creando accesos directos...${NORMAL}"
 wget "$LANZADOR" -q -O "/tmp/$NEWLANZADOR"
@@ -355,8 +354,9 @@ cp "/tmp/$NEWLANZADOR" "/home/$USER/Escritorio"
 
 echo -e "BORRANDO archivos firefox residuales...${NORMAL}"
 rm "/tmp/$NEWLANZADOR"
-rm "$BIGTMP/firefox*"
-	
+sudo rm /home/$USER/.cache/minino-big/firefox*
+sudo rm /home/$SUDO_USER/.cache/minino-big/firefox*
+
 	#Borra el actualizador automático ya que puede que en un futuro las actualizaciones no sean compatibles con el sistema
 	
 	sudo rm -f /usr/lib/firefox-latest/updat* 
