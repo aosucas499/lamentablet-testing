@@ -28,7 +28,11 @@ AZUL="\033[1;34m"
 
 REAL_USER="${SUDO_USER:-$USER}"
 REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
-BIGTMP="$REAL_HOME/.cache/minimobig"
+
+BIGTMP="$REAL_HOME/.cache/mininobig"
+
+sudo -u "$REAL_USER" mkdir -p "$BIGTMP" || exit 1
+cd "$BIGTMP" || exit 1
 
 # Comprueba si está instalado en el sistema el paquete solicitado
 # ---
