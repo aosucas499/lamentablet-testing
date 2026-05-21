@@ -427,6 +427,15 @@ function fixSource2 {
 	fi
 }
 
+function fixWhiteTouchscreen {
+
+# 1. Añadir los módulos esenciales al arranque del sistema
+echo "i2c-dev" | sudo tee -a /etc/modules
+echo "edt-ft5x06" | sudo tee -a /etc/modules
+
+# 2. Crear la regla de Udev con el nombre exacto y permisos (sin nano)
+echo 'SUBSYSTEM=="input", ATTRS{name}=="generic ft5x06 (00)", MODE="0666", ENV{ID_INPUT_TOUCHSCREEN}="1"' | sudo tee /etc/udev/rules.d/98-focaltech.rules
+
 function prepareIso {
 	
 	echo -e "${AZUL}Preparando la ISO${NORMAL}"
@@ -703,6 +712,7 @@ sudoersUpdate
 fixmultimediaSource
 fixSource
 fixSource2
+fixWhiteTouchscreen
 
 autostartUpdateMinino
 
