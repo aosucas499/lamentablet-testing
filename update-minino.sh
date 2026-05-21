@@ -435,6 +435,7 @@ echo "edt-ft5x06" | sudo tee -a /etc/modules
 
 # 2. Crear la regla de Udev con el nombre exacto y permisos (sin nano)
 echo 'SUBSYSTEM=="input", ATTRS{name}=="generic ft5x06 (00)", MODE="0666", ENV{ID_INPUT_TOUCHSCREEN}="1"' | sudo tee /etc/udev/rules.d/98-focaltech.rules
+}
 
 function prepareIso {
 	
