@@ -1,0 +1,14 @@
+# Makefile - ft5x0x touchscreen driver for kernel 5.10
+# Usage: make
+
+obj-m := ft5x06_ts.o
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+
+install:
+	cp ft5x06_ts.ko /lib/modules/$(shell uname -r)/kernel/drivers/input/touchscreen/
+	depmod -a
