@@ -428,14 +428,22 @@ function fixSource2 {
 }
 
 function fixWhiteTouchscreen {
+	if [ -f "/boot/vmlinuz-3.10.20_edu" ]; then
+		# 1. Añadir los módulos esenciales al arranque del sistema
+		echo "i2c-dev" | sudo tee -a /etc/modules
+		echo "ft5x06-ts" | sudo tee -a /etc/modules
+		echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf
 
-# 1. Añadir los módulos esenciales al arranque del sistema
-echo "i2c-dev" | sudo tee -a /etc/modules
-echo "ft5x06-ts" | sudo tee -a /etc/modules
-echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf
-
-# 2. Crear la regla de Udev con el nombre exacto y permisos (sin nano)
-echo 'SUBSYSTEM=="i2c-dev", KERNEL=="i2c-3", ACTION=="add", RUN+="/bin/sh -c '\''sleep 1; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules
+		# 2. Crear la regla de Udev con el nombre exacto y permisos (sin nano)
+		echo 'SUBSYSTEM=="i2c-dev", KERNEL=="i2c-3", ACTION=="add", RUN+="/bin/sh -c '\''sleep 1; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules
+	
+		# 3. Refrescar reglas
+    	sudo udevadm control --reload-rules
+    	sudo udevadm trigger
+		echo "Configuración aplicada con éxito."
+	else
+    	echo "Kernel incorrecto o tablet no compatible. La función no realizará cambios."
+	fi
 }
 
 function prepareIso {
