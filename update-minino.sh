@@ -429,6 +429,7 @@ function fixSource2 {
 
 function fixWhiteTouchscreen {
 	if [ -f "/boot/vmlinuz-3.10.20_edu" ]; then
+		echo -e "${AZUL}Tablet cargador blanco detectada, corrigiendo táctil${NORMAL}"
 		# 1. Añadir los módulos esenciales al arranque del sistema
 		echo "i2c-dev" | sudo tee -a /etc/modules
 		echo "ft5x06-ts" | sudo tee -a /etc/modules
@@ -442,6 +443,7 @@ function fixWhiteTouchscreen {
     	sudo udevadm trigger
 		echo "Configuración aplicada con éxito."
 	else
+		echo -e "${AZUL}Tablet cargador negro detectada, nada que cambiar${NORMAL}"
     	echo "Kernel incorrecto o tablet no compatible. La función no realizará cambios."
 	fi
 }
