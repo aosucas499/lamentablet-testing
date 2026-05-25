@@ -431,10 +431,11 @@ function fixWhiteTouchscreen {
 
 # 1. Añadir los módulos esenciales al arranque del sistema
 echo "i2c-dev" | sudo tee -a /etc/modules
-echo "edt-ft5x06" | sudo tee -a /etc/modules
+echo "ft5x06-ts" | sudo tee -a /etc/modules
+echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf
 
 # 2. Crear la regla de Udev con el nombre exacto y permisos (sin nano)
-echo 'SUBSYSTEM=="i2c-dev", KERNEL=="i2c-3", RUN+="/bin/sh -c '\''echo edt-ft5x06 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules
+echo 'SUBSYSTEM=="i2c-dev", KERNEL=="i2c-3", ACTION=="add", RUN+="/bin/sh -c '\''sleep 1; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules
 }
 
 function prepareIso {
