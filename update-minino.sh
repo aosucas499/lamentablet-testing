@@ -428,24 +428,32 @@ function fixSource2 {
 }
 
 function fixWhiteTouchscreen {
-	if [ -f "/boot/vmlinuz-3.10.20_edu" ]; then
-		echo -e "${AZUL}Tablet cargador blanco detectada, corrigiendo táctil${NORMAL}"
-		# 1. Añadir los módulos esenciales al arranque del sistema
-		echo "i2c-dev" | sudo tee -a /etc/modules
-		echo "ft5x06-ts" | sudo tee -a /etc/modules
-		echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf
+    if [ -f "/boot/vmlinuz-3.10.20_edu" ]; then
+        echo -e "${AZUL}Tablet cargador blanco detectada, corrigiendo táctil${NORMAL}"
+        
+        # 1. Asegurar módulos
+        echo "i2c-dev" | sudo tee -a /etc/modules > /dev/null
+        echo "ft5x06-ts" | sudo tee -a /etc/modules > /dev/null
+        echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf > /dev/null
 
-		# 2. Crear la regla de Udev con el nombre exacto y permisos (sin nano)
-		echo 'SUBSYSTEM=="i2c-dev", KERNEL=="i2c-3", ACTION=="add", RUN+="/bin/sh -c '\''sleep 1; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules
-	
-		# 3. Refrescar reglas
-    	sudo udevadm control --reload-rules
-    	sudo udevadm trigger
-		echo "Configuración aplicada con éxito."
-	else
-		echo -e "${AZUL}Tablet cargador negro detectada, nada que cambiar${NORMAL}"
-    	echo "Kernel incorrecto o tablet no compatible. La función no realizará cambios."
-	fi
+        # 2. Crear una regla más robusta (que llame a un script, no a un comando en línea)
+        # La regla detecta el bus y espera a que el sistema esté en calma
+        echo 'ACTION=="add", SUBSYSTEM=="i2c", ATTRS{name}=="i2c-3", RUN+="/bin/sh -c '\''sleep 5; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules > /dev/null
+    
+        # 3. Refrescar reglas
+        sudo udevadm control --reload-rules
+        
+        # 4. INTENTO INMEDIATO: 
+        # A veces udev no llega a tiempo, forzamos la carga ahora mismo si el bus existe
+        if [ -d "/sys/bus/i2c/devices/i2c-3" ]; then
+            echo "Intentando cargar driver inmediatamente..."
+            sudo sh -c 'echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'
+        fi
+        
+        echo "Configuración aplicada."
+    else
+        echo -e "${AZUL}Tablet cargador negro detectada, nada que cambiar${NORMAL}"
+    fi
 }
 
 function prepareIso {
