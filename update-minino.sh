@@ -488,7 +488,7 @@ function fixWhiteTouchscreen {
 		#echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf > /dev/null
 
         # 2. Crear una regla udev robusta (Tu código original)
-        echo 'ACTION=="add", SUBSYSTEM=="i2c", ATTRS{name}=="i2c-3", RUN+="/bin/sh -c '\''sleep 5; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules > /dev/null
+        echo 'ACTION=="add", SUBSYSTEM=="i2c", KERNEL=="i2c-3", RUN+="/bin/sh -c '\''sleep 5; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules > /dev/null
     
         # 3. Refrescar reglas (Tu código original)
         sudo udevadm control --reload-rules
