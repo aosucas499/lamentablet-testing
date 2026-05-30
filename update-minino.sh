@@ -436,38 +436,47 @@ function fixWhiteTouchscreen {
         return 0
     fi
 
-    # Tu condicional de kernel original
+    # Condicional de kernel original
     if [ -f "/boot/vmlinuz-3.10.20_edu" ]; then
         echo -e "${AZUL}Tablet cargador blanco detectada, corrigiendo táctil${NORMAL}"
         
-        # =========================================================================
-        # A. COPIAR CONFIGURACIÓN DE XORG
-        # =========================================================================
-        if [ -f "./3-mtrack.conf" ]; then
-            sudo cp "./3-mtrack.conf" /usr/share/X11/xorg.conf.d/
-            echo "Archivo 3-mtrack.conf copiado correctamente a Xorg."
-        else
-            echo "Error crítico: No se encuentra '3-mtrack.conf' en el directorio actual."
+        # Validación de seguridad: verificar que la variable de GitHub no esté vacía
+        if [ -z "$REPO_GITHUB" ]; then
+            echo -e "${ROJO}Error: La variable REPO_GITHUB no está definida al inicio del script.${NORMAL}"
+            return 1
         fi
 
         # =========================================================================
-        # B. INSTALAR EL DRIVER (.ko) EN LOS MÓDULOS DEL KERNEL
+        # A. DESCARGAR E INSTALAR CONFIGURACIÓN DE XORG (3-mtrack.conf)
         # =========================================================================
-        # Nota: El archivo final en el sistema DEBE llamarse 'ft5x06-ts.ko' 
-        # para que coincida con el nombre que añadimos a /etc/modules.
-        if [ -f "./ft5x06-ts.ko" ]; then
-            sudo mkdir -p "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/"
-            sudo cp "./ft5x06-ts.ko" "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/"
-            sudo depmod -a # Reconstruye el mapa de módulos de Linux
-            echo "Driver ft5x06-ts.ko instalado y registrado en el sistema."
-        elif [ -f "./ft5x06.ko" ]; then
-            # Por si acaso tu archivo se llama a secas 'ft5x06.ko', lo renombramos al copiarlo
-            sudo mkdir -p "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/"
-            sudo cp "./ft5x06.ko" "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/ft5x06-ts.ko"
-            sudo depmod -a
-            echo "Driver ft5x06.ko instalado como ft5x06-ts.ko y registrado."
+        echo "Descargando 3-mtrack.conf desde GitHub..."
+        sudo wget -q -O /usr/share/X11/xorg.conf.d/3-mtrack.conf "https://raw.githubusercontent.com/$REPO_GITHUB/refs/heads/main/kernel-testing-5v/touchscreen/ft5x06-modified/3-mtrack.conf"
+        
+        # Verificamos que la descarga haya sido exitosa y el archivo no esté vacío
+        if [ $? -eq 0 ] && [ -s "/usr/share/X11/xorg.conf.d/3-mtrack.conf" ]; then
+            echo "Archivo 3-mtrack.conf descargado e instalado en Xorg correctamente."
         else
-            echo "Error crítico: No se encuentra el archivo .ko en el directorio actual."
+            echo -e "${ROJO}Error crítico al descargar 3-mtrack.conf de GitHub (¿URL o internet mal?)${NORMAL}"
+            return 1
+        fi
+
+        # =========================================================================
+        # B. DESCARGAR E INSTALAR EL DRIVER (.ko) EN LOS MÓDULOS DEL KERNEL
+        # =========================================================================
+        echo "Descargando ft5x06-ts.ko desde GitHub..."
+        KVER=$(uname -r)
+        sudo mkdir -p "/lib/modules/$KVER/kernel/drivers/input/touchscreen/"
+        
+        sudo wget -q -O "/lib/modules/$KVER/kernel/drivers/input/touchscreen/ft5x06-ts.ko" "https://github.com/$REPO_GITHUB/raw/refs/heads/main/kernel-testing-5v/touchscreen/ft5x06-modified/ft5x06-ts.ko"
+
+        if [ $? -eq 0 ] && [ -s "/lib/modules/$KVER/kernel/drivers/input/touchscreen/ft5x06-ts.ko" ]; then
+            sudo depmod -a # Reconstruye el mapa de módulos de Linux para reconocer el nuevo .ko
+            echo "Driver ft5x06-ts.ko descargado e instalado en el sistema."
+        else
+            echo -e "${ROJO}Error crítico al descargar ft5x06-ts.ko de GitHub.${NORMAL}"
+            # Borramos el archivo corrupto si se creó a medias para no romper depmod
+            sudo rm -f "/lib/modules/$KVER/kernel/drivers/input/touchscreen/ft5x06-ts.ko"
+            return 1
         fi
         
         # =========================================================================
@@ -475,7 +484,8 @@ function fixWhiteTouchscreen {
         # =========================================================================
         echo "i2c-dev" | sudo tee -a /etc/modules > /dev/null
         echo "ft5x06-ts" | sudo tee -a /etc/modules > /dev/null
-        echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf > /dev/null
+        # Esta opcion ya no hace falta.
+		#echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf > /dev/null
 
         # 2. Crear una regla udev robusta (Tu código original)
         echo 'ACTION=="add", SUBSYSTEM=="i2c", ATTRS{name}=="i2c-3", RUN+="/bin/sh -c '\''sleep 5; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules > /dev/null
@@ -483,10 +493,9 @@ function fixWhiteTouchscreen {
         # 3. Refrescar reglas (Tu código original)
         sudo udevadm control --reload-rules
         
-        # 4. INTENTO INMEDIATO TRATANDO EL MÓDULO COMO NATIVO
+        # 4. INTENTO INMEDIATO USANDO EL MÓDULO YA REGISTRADO
         if [ -d "/sys/bus/i2c/devices/i2c-3" ]; then
             echo "Intentando cargar driver inmediatamente..."
-            # Ahora que está instalado en /lib/modules, podemos usar modprobe de forma limpia
             sudo modprobe ft5x06-ts 2>/dev/null
             sudo sh -c 'echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device' 2>/dev/null
         fi
@@ -496,6 +505,7 @@ function fixWhiteTouchscreen {
         echo -e "${AZUL}Tablet cargador negro detectada, nada que cambiar${NORMAL}"
     fi
 }
+
 function prepareIso {
 	
 	echo -e "${AZUL}Preparando la ISO${NORMAL}"
