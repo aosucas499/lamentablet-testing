@@ -9,4 +9,5 @@ clean:
 
 install:
 	cp ft5x06-ts.ko /lib/modules/$(shell uname -r)/kernel/drivers/input/touchscreen/
+	depmod -a
 
