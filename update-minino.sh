@@ -428,34 +428,74 @@ function fixSource2 {
 }
 
 function fixWhiteTouchscreen {
+    # =========================================================================
+    # 0. CONTROL DE REPETICIÓN (Si ya existe el archivo en Xorg, salimos)
+    # =========================================================================
+    if [ -f "/usr/share/X11/xorg.conf.d/3-mtrack.conf" ]; then
+        echo -e "${AZUL}El táctil ya fue configurado en una sesión anterior. Nada que hacer.${NORMAL}"
+        return 0
+    fi
+
+    # Tu condicional de kernel original
     if [ -f "/boot/vmlinuz-3.10.20_edu" ]; then
         echo -e "${AZUL}Tablet cargador blanco detectada, corrigiendo táctil${NORMAL}"
         
-        # 1. Asegurar módulos
+        # =========================================================================
+        # A. COPIAR CONFIGURACIÓN DE XORG
+        # =========================================================================
+        if [ -f "./3-mtrack.conf" ]; then
+            sudo cp "./3-mtrack.conf" /usr/share/X11/xorg.conf.d/
+            echo "Archivo 3-mtrack.conf copiado correctamente a Xorg."
+        else
+            echo "Error crítico: No se encuentra '3-mtrack.conf' en el directorio actual."
+        fi
+
+        # =========================================================================
+        # B. INSTALAR EL DRIVER (.ko) EN LOS MÓDULOS DEL KERNEL
+        # =========================================================================
+        # Nota: El archivo final en el sistema DEBE llamarse 'ft5x06-ts.ko' 
+        # para que coincida con el nombre que añadimos a /etc/modules.
+        if [ -f "./ft5x06-ts.ko" ]; then
+            sudo mkdir -p "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/"
+            sudo cp "./ft5x06-ts.ko" "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/"
+            sudo depmod -a # Reconstruye el mapa de módulos de Linux
+            echo "Driver ft5x06-ts.ko instalado y registrado en el sistema."
+        elif [ -f "./ft5x06.ko" ]; then
+            # Por si acaso tu archivo se llama a secas 'ft5x06.ko', lo renombramos al copiarlo
+            sudo mkdir -p "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/"
+            sudo cp "./ft5x06.ko" "/lib/modules/$(uname -r)/kernel/drivers/input/touchscreen/ft5x06-ts.ko"
+            sudo depmod -a
+            echo "Driver ft5x06.ko instalado como ft5x06-ts.ko y registrado."
+        else
+            echo "Error crítico: No se encuentra el archivo .ko en el directorio actual."
+        fi
+        
+        # =========================================================================
+        # 1. ASEGURAR MÓDULOS (Tu código original)
+        # =========================================================================
         echo "i2c-dev" | sudo tee -a /etc/modules > /dev/null
         echo "ft5x06-ts" | sudo tee -a /etc/modules > /dev/null
         echo "options ft5x06-ts irq=0" | sudo tee /etc/modprobe.d/ft5x06-ts.conf > /dev/null
 
-        # 2. Crear una regla más robusta (que llame a un script, no a un comando en línea)
-        # La regla detecta el bus y espera a que el sistema esté en calma
+        # 2. Crear una regla udev robusta (Tu código original)
         echo 'ACTION=="add", SUBSYSTEM=="i2c", ATTRS{name}=="i2c-3", RUN+="/bin/sh -c '\''sleep 5; echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'\''"' | sudo tee /etc/udev/rules.d/99-tactic-focaltech.rules > /dev/null
     
-        # 3. Refrescar reglas
+        # 3. Refrescar reglas (Tu código original)
         sudo udevadm control --reload-rules
         
-        # 4. INTENTO INMEDIATO: 
-        # A veces udev no llega a tiempo, forzamos la carga ahora mismo si el bus existe
+        # 4. INTENTO INMEDIATO TRATANDO EL MÓDULO COMO NATIVO
         if [ -d "/sys/bus/i2c/devices/i2c-3" ]; then
             echo "Intentando cargar driver inmediatamente..."
-            sudo sh -c 'echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device'
+            # Ahora que está instalado en /lib/modules, podemos usar modprobe de forma limpia
+            sudo modprobe ft5x06-ts 2>/dev/null
+            sudo sh -c 'echo ft5x06-ts 0x38 > /sys/bus/i2c/devices/i2c-3/new_device' 2>/dev/null
         fi
         
-        echo "Configuración aplicada."
+        echo "Configuración aplicada con éxito."
     else
         echo -e "${AZUL}Tablet cargador negro detectada, nada que cambiar${NORMAL}"
     fi
 }
-
 function prepareIso {
 	
 	echo -e "${AZUL}Preparando la ISO${NORMAL}"
