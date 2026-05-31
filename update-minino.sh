@@ -450,7 +450,7 @@ function fixWhiteTouchscreen {
         # A. DESCARGAR E INSTALAR CONFIGURACIÓN DE XORG (3-mtrack.conf)
         # =========================================================================
         echo "Descargando 3-mtrack.conf desde GitHub..."
-        sudo wget -q -O /usr/share/X11/xorg.conf.d/3-mtrack.conf "https://raw.githubusercontent.com/$REPO_GITHUB/refs/heads/main/kernel-testing-5v/touchscreen/ft5x06-modified/3-mtrack.conf"
+        sudo wget -q -O /usr/share/X11/xorg.conf.d/3-mtrack.conf "https://raw.githubusercontent.com/$REPO_GITHUB/refs/heads/main/kernel-testing-5v/touchscreen/ft5x06-modified-v2/3-mtrack.conf"
         
         # Verificamos que la descarga haya sido exitosa y el archivo no esté vacío
         if [ $? -eq 0 ] && [ -s "/usr/share/X11/xorg.conf.d/3-mtrack.conf" ]; then
@@ -467,7 +467,7 @@ function fixWhiteTouchscreen {
         KVER=$(uname -r)
         sudo mkdir -p "/lib/modules/$KVER/kernel/drivers/input/touchscreen/"
         
-        sudo wget -q -O "/lib/modules/$KVER/kernel/drivers/input/touchscreen/ft5x06-ts.ko" "https://github.com/$REPO_GITHUB/raw/refs/heads/main/kernel-testing-5v/touchscreen/ft5x06-modified/ft5x06-ts.ko"
+        sudo wget -q -O "/lib/modules/$KVER/kernel/drivers/input/touchscreen/ft5x06-ts.ko" "https://github.com/$REPO_GITHUB/raw/refs/heads/main/kernel-testing-5v/touchscreen/ft5x06-modified-v2/ft5x06-ts.ko"
 
         if [ $? -eq 0 ] && [ -s "/lib/modules/$KVER/kernel/drivers/input/touchscreen/ft5x06-ts.ko" ]; then
             sudo depmod -a # Reconstruye el mapa de módulos de Linux para reconocer el nuevo .ko
